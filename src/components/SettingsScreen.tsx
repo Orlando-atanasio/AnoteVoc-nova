@@ -18,6 +18,8 @@ import {
   Camera,
   Check,
   AlertCircle,
+  FileText,
+  Trash2,
 } from 'lucide-react';
 import { UserProfile, AppSettings } from '../types.ts';
 import { WeatherTheme } from '../themes.ts';
@@ -33,6 +35,7 @@ interface SettingsScreenProps {
   onUpdateSettings: (s: AppSettings) => void;
   onCreateBackup: () => void;
   onRestoreBackup: (backup: BackupItem) => void;
+  onDeleteBackup?: () => void;
   onExportJson: () => void;
   onExportTxt: () => void;
   onImportFiles: (files: FileList) => void;
@@ -48,6 +51,7 @@ export function SettingsScreen({
   onUpdateSettings,
   onCreateBackup,
   onRestoreBackup,
+  onDeleteBackup,
   onExportJson,
   onExportTxt,
   onImportFiles,
@@ -60,9 +64,18 @@ export function SettingsScreen({
   const importFileRef = useRef<HTMLInputElement>(null);
   const avatarFileRef = useRef<HTMLInputElement>(null);
 
-  const topTextColor = 'text-[#1b3547]';
-  const topTextSubColor = 'text-[#5d7684]';
-  const cardStyleClass = 'ios-glass-card-subtle';
+  const isDarkTop = currentTheme.isDarkTopText;
+  const topTextColor = isDarkTop ? 'text-slate-800' : 'text-white';
+  const topTextSubColor = isDarkTop ? 'text-slate-600' : 'text-white/80';
+  const navIconColor = isDarkTop ? 'text-slate-800' : 'text-white';
+  const cardStyleClass = isDarkTop ? 'ios-glass-card-light' : 'ios-glass-card-dark';
+  const dividerClass = isDarkTop ? 'divide-black/10' : 'divide-white/10';
+  const borderSubtleClass = isDarkTop ? 'border-black/10' : 'border-white/10';
+  const btnGlassClass = isDarkTop
+    ? 'bg-black/10 hover:bg-black/15 text-slate-800'
+    : 'bg-white/15 hover:bg-white/25 text-white';
+  const btnInactiveClass = isDarkTop ? 'bg-black/10 text-slate-700' : 'bg-white/10 text-white/70';
+  const homeIndicatorClass = isDarkTop ? 'bg-slate-700/60' : 'bg-white/40';
 
   const handleSaveProfile = () => {
     onUpdateProfile({
@@ -96,7 +109,7 @@ export function SettingsScreen({
         <div className="flex items-center gap-2 pt-1">
           <button
             onClick={onBack}
-            className={`p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${topTextColor}`}
+            className={`p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${navIconColor}`}
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -108,16 +121,16 @@ export function SettingsScreen({
         {/* Profile Card */}
         <div className={`${cardStyleClass} rounded-2xl p-3 flex items-center gap-3.5`}>
           <div className="relative">
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-white/20 border-2 border-white flex items-center justify-center">
+            <div className={`w-12 h-12 rounded-full overflow-hidden ${isDarkTop ? 'bg-black/15 border-slate-700/60' : 'bg-white/20 border-white'} border-2 flex items-center justify-center`}>
               {avatar ? (
                 <img src={avatar} alt="Foto" className="w-full h-full object-cover" />
               ) : (
-                <User className="w-6 h-6 text-white" />
+                <User className={`w-6 h-6 ${isDarkTop ? 'text-slate-700' : 'text-white'}`} />
               )}
             </div>
             <button
               onClick={() => avatarFileRef.current?.click()}
-              className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center cursor-pointer shadow-sm"
+              className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center cursor-pointer shadow-sm hover:bg-orange-600 transition-colors"
               title="Trocar foto"
             >
               <Camera className="w-3 h-3" />
@@ -152,81 +165,107 @@ export function SettingsScreen({
 
       {/* Settings Options Scroll Area */}
       <div className="flex-1 overflow-y-auto no-scrollbar py-2 space-y-4 text-xs">
-        {/* Section: Dados e backup */}
+        {/* Section: Backup e Restauração Simplificados */}
         <div>
           <h4 className={`text-[11px] font-bold uppercase tracking-wider mb-1.5 px-1 ${topTextSubColor}`}>
-            Dados e backup
+            Backup e Restauração
           </h4>
-          <div className={`${cardStyleClass} rounded-2xl overflow-hidden divide-y divide-white/10`}>
-            {/* Backup options */}
-            <div className="p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-white flex items-center gap-2">
-                  <HardDrive className="w-4 h-4 text-blue-400" />
-                  Backup e exportação
-                </span>
-                <span className="text-[10px] text-white/50">{backups.length} salvos</span>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5 pt-1">
+          <div className={`${cardStyleClass} rounded-2xl overflow-hidden divide-y ${dividerClass}`}>
+            {/* 1. Criar e Baixar Backup */}
+            <div className="p-3 space-y-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center flex-shrink-0">
+                    <Download className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className={`font-semibold ${topTextColor} block text-[12.5px] leading-tight`}>
+                      Fazer Backup
+                    </span>
+                    <span className={`text-[10px] ${topTextSubColor} block truncate`}>
+                      Salva e baixa o arquivo .json no aparelho
+                    </span>
+                  </div>
+                </div>
                 <button
                   onClick={onCreateBackup}
-                  className="py-1.5 px-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-medium text-[11px] cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-[11px] shadow-sm cursor-pointer transition-colors flex-shrink-0"
                 >
-                  Fazer backup agora
-                </button>
-                <button
-                  onClick={onExportJson}
-                  className="py-1.5 px-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-medium text-[11px] cursor-pointer flex items-center justify-center gap-1"
-                >
-                  <Download className="w-3 h-3" />
-                  Exportar JSON
-                </button>
-                <button
-                  onClick={onExportTxt}
-                  className="py-1.5 px-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-medium text-[11px] cursor-pointer flex items-center justify-center gap-1"
-                >
-                  <Download className="w-3 h-3" />
-                  Exportar TXT
-                </button>
-                <button
-                  onClick={() => importFileRef.current?.click()}
-                  className="py-1.5 px-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-medium text-[11px] cursor-pointer flex items-center justify-center gap-1"
-                >
-                  <Upload className="w-3 h-3" />
-                  Restaurar JSON
+                  Criar e Baixar
                 </button>
               </div>
 
-              {/* Saved backups list */}
+              {/* Ponto de restauração único salvo */}
               {backups.length > 0 && (
-                <div className="pt-2 border-t border-white/10 space-y-1">
-                  <span className="text-[10px] text-white/60 uppercase font-semibold">Backups recentes</span>
-                  {backups.map((bk, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-[11px] text-white/80 py-0.5">
-                      <span>{new Date(bk.t).toLocaleString('pt-BR')}</span>
+                <div className={`p-2 rounded-xl ${isDarkTop ? 'bg-black/5' : 'bg-white/10'} flex items-center justify-between`}>
+                  <div className="min-w-0 pr-2">
+                    <span className={`text-[9.5px] ${topTextSubColor} uppercase font-semibold block leading-none`}>
+                      Último backup salvo:
+                    </span>
+                    <span className={`text-[11px] font-medium ${topTextColor} block truncate mt-0.5`}>
+                      {new Date(backups[0].t).toLocaleDateString('pt-BR')} às {new Date(backups[0].t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} ({backups[0].n} notas)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <button
+                      onClick={() => onRestoreBackup(backups[0])}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-medium cursor-pointer shadow-sm transition-colors"
+                    >
+                      Restaurar
+                    </button>
+                    {onDeleteBackup && (
                       <button
-                        onClick={() => onRestoreBackup(bk)}
-                        className="px-2 py-0.5 rounded bg-orange-500 text-white text-[10px] cursor-pointer"
+                        onClick={onDeleteBackup}
+                        className="p-1 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 cursor-pointer transition-colors"
+                        title="Excluir este ponto de restauração"
                       >
-                        Restaurar
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
-                    </div>
-                  ))}
+                    )}
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Import files */}
-            <button
-              onClick={() => importFileRef.current?.click()}
-              className="w-full p-3 flex items-center justify-between text-white hover:bg-white/10 cursor-pointer"
-            >
-              <div className="flex items-center gap-2">
-                <Upload className="w-4 h-4 text-emerald-400" />
-                <span className="font-semibold">Importar notas</span>
+            {/* 2. Restaurar de Arquivo */}
+            <div className="p-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0">
+                  <Upload className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className={`font-semibold ${topTextColor} block text-[12.5px] leading-tight`}>
+                    Restaurar Backup
+                  </span>
+                  <span className={`text-[10px] ${topTextSubColor} block truncate`}>
+                    Abrir arquivo .json salvo anteriormente
+                  </span>
+                </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-white/50" />
-            </button>
+              <button
+                onClick={() => importFileRef.current?.click()}
+                className={`px-3 py-1.5 rounded-xl ${btnGlassClass} font-semibold text-[11px] cursor-pointer transition-colors flex-shrink-0 border ${isDarkTop ? 'border-slate-300' : 'border-white/20'}`}
+              >
+                Restaurar
+              </button>
+            </div>
+
+            {/* 3. Exportar Texto simples */}
+            <div className="px-3 py-2 flex items-center justify-between text-[11px]">
+              <div className="flex items-center gap-2">
+                <FileText className="w-3.5 h-3.5 text-amber-400" />
+                <span className={`font-medium ${topTextColor}`}>
+                  Exportar notas em texto (.txt)
+                </span>
+              </div>
+              <button
+                onClick={onExportTxt}
+                className={`text-[10px] px-2 py-0.5 rounded-lg ${btnGlassClass} hover:opacity-80 cursor-pointer transition-colors`}
+              >
+                Baixar TXT
+              </button>
+            </div>
+
             <input
               ref={importFileRef}
               type="file"
@@ -243,10 +282,10 @@ export function SettingsScreen({
           <h4 className={`text-[11px] font-bold uppercase tracking-wider mb-1.5 px-1 ${topTextSubColor}`}>
             Aparência
           </h4>
-          <div className={`${cardStyleClass} rounded-2xl overflow-hidden divide-y divide-white/10`}>
+          <div className={`${cardStyleClass} rounded-2xl overflow-hidden divide-y ${dividerClass}`}>
             {/* Font size */}
             <div className="p-3 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-white">
+              <div className={`flex items-center gap-2 ${topTextColor}`}>
                 <Type className="w-4 h-4 text-orange-400" />
                 <span className="font-semibold">Tamanho do texto</span>
               </div>
@@ -255,8 +294,8 @@ export function SettingsScreen({
                   <button
                     key={sizeName}
                     onClick={() => onUpdateSettings({ ...settings, fs: idx })}
-                    className={`px-2 py-1 rounded-lg text-[10px] font-medium cursor-pointer ${
-                      settings.fs === idx ? 'bg-orange-500 text-white' : 'bg-white/10 text-white/70'
+                    className={`px-2 py-1 rounded-lg text-[10px] font-medium cursor-pointer transition-colors ${
+                      settings.fs === idx ? 'bg-orange-500 text-white shadow-sm' : btnInactiveClass
                     }`}
                   >
                     {sizeName}
@@ -267,17 +306,17 @@ export function SettingsScreen({
 
             {/* Reminders & Sound */}
             <div className="p-3 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-white">
+              <div className={`flex items-center gap-2 ${topTextColor}`}>
                 <Bell className="w-4 h-4 text-yellow-400" />
                 <div>
                   <span className="font-semibold block leading-tight">Lembretes sonoros</span>
-                  <span className="text-[10px] text-white/60">Avisos de compromisso</span>
+                  <span className={`text-[10px] ${topTextSubColor}`}>Avisos de compromisso</span>
                 </div>
               </div>
               <button
                 onClick={() => onUpdateSettings({ ...settings, rem: settings.rem ? 0 : 1 })}
                 className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer ${
-                  settings.rem ? 'bg-orange-500' : 'bg-white/20'
+                  settings.rem ? 'bg-orange-500' : (isDarkTop ? 'bg-black/20' : 'bg-white/20')
                 }`}
               >
                 <div
@@ -296,7 +335,7 @@ export function SettingsScreen({
             Organização
           </h4>
           <div className={`${cardStyleClass} rounded-2xl p-3 space-y-2.5`}>
-            <div className="flex items-center justify-between text-white">
+            <div className={`flex items-center justify-between ${topTextColor}`}>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-indigo-400" />
                 <span className="font-semibold">Primeiro dia da semana</span>
@@ -304,16 +343,16 @@ export function SettingsScreen({
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => onUpdateSettings({ ...settings, wk: 1 })}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-medium cursor-pointer ${
-                    settings.wk === 1 ? 'bg-orange-500 text-white' : 'bg-white/10 text-white/70'
+                  className={`px-2 py-1 rounded-lg text-[10px] font-medium cursor-pointer transition-colors ${
+                    settings.wk === 1 ? 'bg-orange-500 text-white shadow-sm' : btnInactiveClass
                   }`}
                 >
                   Segunda
                 </button>
                 <button
                   onClick={() => onUpdateSettings({ ...settings, wk: 0 })}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-medium cursor-pointer ${
-                    settings.wk === 0 ? 'bg-orange-500 text-white' : 'bg-white/10 text-white/70'
+                  className={`px-2 py-1 rounded-lg text-[10px] font-medium cursor-pointer transition-colors ${
+                    settings.wk === 0 ? 'bg-orange-500 text-white shadow-sm' : btnInactiveClass
                   }`}
                 >
                   Domingo
@@ -323,12 +362,12 @@ export function SettingsScreen({
           </div>
         </div>
 
-        <p className="text-center text-[11px] text-white/50 pt-2 pb-1">
+        <p className={`text-center text-[11px] ${topTextSubColor} pt-2 pb-1`}>
           AnoteVocê · versão 1.0.0
         </p>
       </div>
 
-      <div className="w-32 h-1 rounded-full mx-auto mt-2 bg-slate-400/80" />
+      <div className={`w-32 h-1 rounded-full mx-auto mt-2 ${homeIndicatorClass}`} />
     </div>
   );
 }

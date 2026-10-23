@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -27,6 +27,7 @@ import { WeatherTheme } from '../themes.ts';
 interface CalendarScreenProps {
   appointments: Appointment[];
   currentTheme: WeatherTheme;
+  initialOpenCreate?: boolean;
   onBack: () => void;
   onSaveAppointment: (appt: Appointment) => void;
   onDeleteAppointment: (id: string | number) => void;
@@ -43,6 +44,7 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; dot: string }>
 export function CalendarScreen({
   appointments,
   currentTheme,
+  initialOpenCreate,
   onBack,
   onSaveAppointment,
   onDeleteAppointment,
@@ -57,6 +59,21 @@ export function CalendarScreen({
   const [selectedEvent, setSelectedEvent] = useState<Appointment | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Appointment | null>(null);
+
+  // Auto-open create form when requested from home screen
+  useEffect(() => {
+    if (initialOpenCreate) {
+      setEditingEvent(null);
+      setFormTitle('');
+      setFormDate(ymd(new Date()));
+      setFormStart('09:00');
+      setFormEnd('10:00');
+      setFormCategory('Trabalho');
+      setFormLocation('');
+      setFormNotes('');
+      setIsFormOpen(true);
+    }
+  }, [initialOpenCreate]);
 
   // Form inputs
   const [formTitle, setFormTitle] = useState('');
@@ -229,74 +246,38 @@ export function CalendarScreen({
               Calendário
             </h2>
           </div>
-
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => setIsSearching(!isSearching)}
-              className={`p-1.5 rounded-xl hover:bg-white/10 cursor-pointer ${topTextColor}`}
-              title="Buscar compromissos"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleOpenCreateForm}
-              className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center shadow-md cursor-pointer transition-transform active:scale-95"
-              title="Novo compromisso"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
-          </div>
         </div>
 
-        {/* Inline Search Bar */}
-        {isSearching && (
-          <div className="flex items-center gap-2 p-1.5 bg-white/20 rounded-2xl border border-white/25">
-            <Search className="w-4 h-4 text-white/60 ml-2" />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar título, categoria, local..."
-              className="flex-1 bg-transparent border-none text-xs text-white placeholder-white/50 focus:outline-none"
-              autoFocus
-            />
-            <button onClick={() => setIsSearching(false)} className="text-white/60 hover:text-white mr-1">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
         {/* View Mode Segment Switcher (Mês, Semana, Dia) */}
-        {!isSearching && (
-          <div className="grid grid-cols-3 gap-1 p-1 bg-white/20 backdrop-blur-md rounded-2xl border border-white/20 text-xs">
-            <button
-              onClick={() => setViewMode('m')}
-              className={`py-1.5 rounded-xl font-medium transition-all cursor-pointer ${
-                viewMode === 'm' ? 'bg-orange-500 text-white shadow-md font-bold' : `${topTextColor} hover:bg-white/10`
-              }`}
-            >
-              Mês
-            </button>
-            <button
-              onClick={() => setViewMode('s')}
-              className={`py-1.5 rounded-xl font-medium transition-all cursor-pointer ${
-                viewMode === 's' ? 'bg-orange-500 text-white shadow-md font-bold' : `${topTextColor} hover:bg-white/10`
-              }`}
-            >
-              Semana
-            </button>
-            <button
-              onClick={() => setViewMode('d')}
-              className={`py-1.5 rounded-xl font-medium transition-all cursor-pointer ${
-                viewMode === 'd' ? 'bg-orange-500 text-white shadow-md font-bold' : `${topTextColor} hover:bg-white/10`
-              }`}
-            >
-              Dia
-            </button>
-          </div>
-        )}
+        <div className="grid grid-cols-3 gap-1 p-1 bg-white/20 backdrop-blur-md rounded-2xl border border-white/20 text-xs">
+          <button
+            onClick={() => setViewMode('m')}
+            className={`py-1.5 rounded-xl font-medium transition-all cursor-pointer ${
+              viewMode === 'm' ? 'bg-orange-500 text-white shadow-md font-bold' : `${topTextColor} hover:bg-white/10`
+            }`}
+          >
+            Mês
+          </button>
+          <button
+            onClick={() => setViewMode('s')}
+            className={`py-1.5 rounded-xl font-medium transition-all cursor-pointer ${
+              viewMode === 's' ? 'bg-orange-500 text-white shadow-md font-bold' : `${topTextColor} hover:bg-white/10`
+            }`}
+          >
+            Semana
+          </button>
+          <button
+            onClick={() => setViewMode('d')}
+            className={`py-1.5 rounded-xl font-medium transition-all cursor-pointer ${
+              viewMode === 'd' ? 'bg-orange-500 text-white shadow-md font-bold' : `${topTextColor} hover:bg-white/10`
+            }`}
+          >
+            Dia
+          </button>
+        </div>
 
         {/* Month / Period Bar */}
-        {!isSearching && viewMode === 'm' && (
+        {viewMode === 'm' && (
           <div className="flex items-center justify-between px-1">
             <h3 className={`text-base font-bold ${topTextColor}`}>
               {months[currentDate.getMonth()]} {currentDate.getFullYear()}
@@ -321,28 +302,7 @@ export function CalendarScreen({
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto no-scrollbar py-2">
-        {isSearching ? (
-          /* Search Results */
-          <div className="space-y-2">
-            <h4 className={`text-xs font-semibold ${topTextSubColor}`}>
-              {searchResults.length} {searchResults.length === 1 ? 'resultado' : 'resultados'}
-            </h4>
-            {searchResults.map((ev) => (
-              <article
-                key={ev.id}
-                onClick={() => setSelectedEvent(ev)}
-                className={`${cardStyleClass} rounded-2xl p-2.5 flex items-center justify-between cursor-pointer`}
-              >
-                <div>
-                  <h4 className={`text-sm font-semibold ${topTextColor}`}>{ev.t}</h4>
-                  <p className={`text-xs ${topTextSubColor}`}>
-                    {ev.d} · {ev.s}–{ev.e} ({ev.g})
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : viewMode === 'm' ? (
+        {viewMode === 'm' ? (
           /* Month Grid View */
           <div>
             {/* Weekday headers */}
@@ -566,40 +526,50 @@ export function CalendarScreen({
         )}
       </div>
 
-      {/* Event Details Sheet */}
+      {/* Event Details Sheet (Claro / Frosted Glass) */}
       {selectedEvent && (
-        <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-xs bg-slate-900/95 border border-white/20 rounded-3xl p-4 shadow-2xl backdrop-blur-2xl text-left animate-fadeIn">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setSelectedEvent(null);
+            }
+          }}
+          className="absolute inset-0 bg-black/35 z-50 flex items-center justify-center p-4 backdrop-blur-xs animate-fadeIn"
+        >
+          <div className="w-full max-w-xs bg-white/95 border border-white/80 rounded-3xl p-4 shadow-2xl backdrop-blur-2xl text-left text-slate-800 animate-fadeIn">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-semibold text-orange-400 uppercase tracking-wider">
+              <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
                 {selectedEvent.g}
               </span>
-              <button onClick={() => setSelectedEvent(null)} className="text-white/60 hover:text-white">
+              <button
+                onClick={() => setSelectedEvent(null)}
+                className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer transition-colors"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <h3 className="text-base font-bold text-white mb-2">{selectedEvent.t}</h3>
+            <h3 className="text-base font-bold text-slate-800 mb-2">{selectedEvent.t}</h3>
 
-            <div className="space-y-1.5 text-xs text-white/80 mb-4 bg-white/5 rounded-2xl p-3 border border-white/10">
+            <div className="space-y-1.5 text-xs text-slate-700 mb-4 bg-slate-100/80 rounded-2xl p-3 border border-slate-200/60">
               <div className="flex items-center gap-2">
-                <CalIcon className="w-3.5 h-3.5 text-orange-400" />
+                <CalIcon className="w-3.5 h-3.5 text-orange-500" />
                 <span>{selectedEvent.d}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-orange-400" />
+                <Clock className="w-3.5 h-3.5 text-orange-500" />
                 <span>{selectedEvent.s} – {selectedEvent.e}</span>
               </div>
               {selectedEvent.l && (
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-orange-400" />
+                  <MapPin className="w-3.5 h-3.5 text-orange-500" />
                   <span>{selectedEvent.l}</span>
                 </div>
               )}
               {selectedEvent.n && (
-                <div className="flex items-start gap-2 pt-1 border-t border-white/10">
-                  <FileText className="w-3.5 h-3.5 text-orange-400 mt-0.5" />
-                  <span className="text-white/70">{selectedEvent.n}</span>
+                <div className="flex items-start gap-2 pt-1 border-t border-slate-200">
+                  <FileText className="w-3.5 h-3.5 text-orange-500 mt-0.5" />
+                  <span className="text-slate-600">{selectedEvent.n}</span>
                 </div>
               )}
             </div>
@@ -608,9 +578,8 @@ export function CalendarScreen({
             <div className="grid grid-cols-2 gap-2 text-xs">
               <button
                 onClick={() => handleOpenEditForm(selectedEvent)}
-                className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium flex items-center justify-center gap-1.5 cursor-pointer"
+                className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200/60 transition-colors"
               >
-                <Edit className="w-3.5 h-3.5" />
                 Editar
               </button>
               <button
@@ -618,7 +587,7 @@ export function CalendarScreen({
                   onSaveAppointment({ ...selectedEvent, done: !selectedEvent.done });
                   setSelectedEvent(null);
                 }}
-                className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium flex items-center justify-center gap-1.5 cursor-pointer"
+                className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200/60 transition-colors"
               >
                 <Check className="w-3.5 h-3.5" />
                 {selectedEvent.done ? 'Reabrir' : 'Concluir'}
@@ -632,7 +601,7 @@ export function CalendarScreen({
                   });
                   setSelectedEvent(null);
                 }}
-                className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium flex items-center justify-center gap-1.5 cursor-pointer"
+                className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200/60 transition-colors"
               >
                 <Copy className="w-3.5 h-3.5" />
                 Duplicar
@@ -642,7 +611,7 @@ export function CalendarScreen({
                   onDeleteAppointment(selectedEvent.id);
                   setSelectedEvent(null);
                 }}
-                className="p-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 font-medium flex items-center justify-center gap-1.5 cursor-pointer"
+                className="p-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-medium flex items-center justify-center gap-1.5 cursor-pointer border border-red-200 transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Excluir
@@ -652,49 +621,68 @@ export function CalendarScreen({
         </div>
       )}
 
-      {/* Create / Edit Appointment Form Modal */}
+      {/* Create / Edit Appointment Form Modal (Claro / Frosted Glass) */}
       {isFormOpen && (
-        <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsFormOpen(false);
+              if (initialOpenCreate) {
+                onBack();
+              }
+            }
+          }}
+          className="absolute inset-0 bg-black/35 z-50 flex items-center justify-center p-4 backdrop-blur-xs animate-fadeIn"
+        >
           <form
             onSubmit={handleSaveForm}
-            className="w-full max-w-xs bg-slate-900/95 border border-white/20 rounded-3xl p-4 shadow-2xl backdrop-blur-2xl text-left animate-fadeIn space-y-3"
+            className="w-full max-w-xs bg-white/95 border border-white/80 rounded-3xl p-4 shadow-2xl backdrop-blur-2xl text-left animate-fadeIn space-y-3 text-slate-800"
           >
             <div className="flex justify-between items-center">
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-sm font-bold text-slate-800">
                 {editingEvent ? 'Editar compromisso' : 'Novo compromisso'}
               </h3>
-              <button onClick={() => setIsFormOpen(false)} type="button" className="text-white/60 hover:text-white">
+              <button
+                onClick={() => {
+                  setIsFormOpen(false);
+                  if (initialOpenCreate) {
+                    onBack();
+                  }
+                }}
+                type="button"
+                className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer transition-colors"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div>
-              <label className="text-[11px] text-white/60 block mb-1">Título</label>
+              <label className="text-[11px] font-semibold text-slate-600 block mb-1">Título</label>
               <input
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="Ex: Reunião de equipe"
-                className="w-full px-3 py-1.5 text-xs rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-orange-500"
+                className="w-full px-3 py-1.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:bg-white"
                 autoFocus
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[11px] text-white/60 block mb-1">Data</label>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1">Data</label>
                 <input
                   type="date"
                   value={formDate}
                   onChange={(e) => setFormDate(e.target.value)}
-                  className="w-full px-2 py-1.5 text-xs rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none"
+                  className="w-full px-2 py-1.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-orange-500 focus:bg-white"
                 />
               </div>
               <div>
-                <label className="text-[11px] text-white/60 block mb-1">Categoria</label>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1">Categoria</label>
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value as any)}
-                  className="w-full px-2 py-1.5 text-xs rounded-xl bg-slate-800 border border-white/20 text-white focus:outline-none"
+                  className="w-full px-2 py-1.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-orange-500 focus:bg-white"
                 >
                   <option value="Trabalho">Trabalho</option>
                   <option value="Pessoal">Pessoal</option>
@@ -705,57 +693,62 @@ export function CalendarScreen({
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[11px] text-white/60 block mb-1">Início</label>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1">Início</label>
                 <input
                   type="time"
                   value={formStart}
                   onChange={(e) => setFormStart(e.target.value)}
-                  className="w-full px-2 py-1.5 text-xs rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none"
+                  className="w-full px-2 py-1.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-orange-500 focus:bg-white"
                 />
               </div>
               <div>
-                <label className="text-[11px] text-white/60 block mb-1">Fim</label>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1">Fim</label>
                 <input
                   type="time"
                   value={formEnd}
                   onChange={(e) => setFormEnd(e.target.value)}
-                  className="w-full px-2 py-1.5 text-xs rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none"
+                  className="w-full px-2 py-1.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-orange-500 focus:bg-white"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[11px] text-white/60 block mb-1">Local (opcional)</label>
+              <label className="text-[11px] font-semibold text-slate-600 block mb-1">Local (opcional)</label>
               <input
                 value={formLocation}
                 onChange={(e) => setFormLocation(e.target.value)}
                 placeholder="Ex: Sala de reunião ou online"
-                className="w-full px-3 py-1.5 text-xs rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none"
+                className="w-full px-3 py-1.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:bg-white"
               />
             </div>
 
             <div>
-              <label className="text-[11px] text-white/60 block mb-1">Observações (opcional)</label>
+              <label className="text-[11px] font-semibold text-slate-600 block mb-1">Observações (opcional)</label>
               <textarea
                 value={formNotes}
                 onChange={(e) => setFormNotes(e.target.value)}
                 rows={2}
                 placeholder="Detalhes ou lembretes..."
-                className="w-full px-3 py-1.5 text-xs rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none resize-none"
+                className="w-full px-3 py-1.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:bg-white resize-none"
               />
             </div>
 
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setIsFormOpen(false)}
-                className="flex-1 py-2 text-xs rounded-xl bg-white/10 text-white font-medium hover:bg-white/20"
+                onClick={() => {
+                  setIsFormOpen(false);
+                  if (initialOpenCreate) {
+                    onBack();
+                  }
+                }}
+                className="flex-1 py-2 text-xs rounded-xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 border border-slate-200 cursor-pointer transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="flex-1 py-2 text-xs rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 shadow-md"
+                className="flex-1 py-2 text-xs rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 shadow-md cursor-pointer transition-colors"
               >
                 Salvar
               </button>

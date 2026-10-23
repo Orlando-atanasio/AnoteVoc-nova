@@ -264,13 +264,13 @@ export function NoteEditorScreen({
 
   return (
     <div
-      className="relative z-10 w-full h-full flex flex-col justify-between overflow-hidden text-left transition-colors sm:rounded-[39px]"
+      className="relative z-10 w-full h-full flex flex-col justify-between overflow-hidden text-left transition-colors rounded-[42px]"
       style={{
         backgroundColor: pageColor || '#ffffff',
       }}
     >
       {/* Top Navigation Bar: Edge-to-edge, clean iOS blur */}
-      <header className="px-4 pt-3 pb-2.5 flex items-center justify-between border-b border-slate-200/80 bg-white/90 backdrop-blur-md flex-shrink-0 z-10 sm:rounded-t-[39px]">
+      <header className="px-4 pt-3 pb-2.5 flex items-center justify-between border-b border-slate-200/80 bg-white/90 backdrop-blur-md flex-shrink-0 z-10 rounded-t-[42px]">
         <button
           onClick={onBack}
           className="flex items-center gap-1 text-[#1f3d4e] hover:text-black text-xs font-semibold px-2 py-1.5 rounded-xl hover:bg-slate-200/50 transition-colors cursor-pointer"
@@ -504,7 +504,7 @@ export function NoteEditorScreen({
       </div>
 
       {/* Bottom Tool Bar: Clean docked bar with tools and Concluir button */}
-      <footer className="px-4 pt-2.5 pb-2 bg-white/95 border-t border-slate-200/90 backdrop-blur-xl flex flex-col text-[#2f5d70] flex-shrink-0 z-10 sm:rounded-b-[39px]">
+      <footer className="px-4 pt-2.5 pb-2 bg-white/95 border-t border-slate-200/90 backdrop-blur-xl flex flex-col text-[#2f5d70] flex-shrink-0 z-10 rounded-b-[42px]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 sm:gap-1.5">
             <button
@@ -743,7 +743,14 @@ export function NoteEditorScreen({
 
       {/* Move to Folder Modal */}
       {showMoveFolderModal && (
-        <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowMoveFolderModal(false);
+            }
+          }}
+          className="absolute inset-0 bg-black/35 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fadeIn"
+        >
           <div className="w-full max-w-xs bg-white/98 border border-slate-200 rounded-3xl p-4 shadow-2xl backdrop-blur-2xl text-left animate-fadeIn">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-sm font-semibold text-[#1b3547]">Mover para pasta</h3>

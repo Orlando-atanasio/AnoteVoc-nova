@@ -247,14 +247,14 @@ export function NotesScreen({
               </button>
 
               {showSortDropdown && (
-                <div className="absolute top-8 right-0 bg-slate-900/95 border border-white/20 rounded-xl p-1 shadow-2xl backdrop-blur-xl z-30 w-32 text-left">
+                <div className="absolute top-8 right-0 bg-white/95 border border-white/80 rounded-2xl p-1.5 shadow-2xl backdrop-blur-2xl z-30 w-36 text-left space-y-0.5">
                   <button
                     onClick={() => {
                       setSortOrder('rec');
                       setShowSortDropdown(false);
                     }}
-                    className={`w-full px-2.5 py-1.5 rounded-lg text-xs text-left cursor-pointer ${
-                      sortOrder === 'rec' ? 'bg-orange-500 text-white font-medium' : 'text-white/80 hover:bg-white/10'
+                    className={`w-full px-2.5 py-1.5 rounded-xl text-xs text-left cursor-pointer transition-colors ${
+                      sortOrder === 'rec' ? 'bg-orange-500 text-white font-semibold' : 'text-slate-700 hover:bg-slate-100 font-medium'
                     }`}
                   >
                     Mais recentes
@@ -264,8 +264,8 @@ export function NotesScreen({
                       setSortOrder('old');
                       setShowSortDropdown(false);
                     }}
-                    className={`w-full px-2.5 py-1.5 rounded-lg text-xs text-left cursor-pointer ${
-                      sortOrder === 'old' ? 'bg-orange-500 text-white font-medium' : 'text-white/80 hover:bg-white/10'
+                    className={`w-full px-2.5 py-1.5 rounded-xl text-xs text-left cursor-pointer transition-colors ${
+                      sortOrder === 'old' ? 'bg-orange-500 text-white font-semibold' : 'text-slate-700 hover:bg-slate-100 font-medium'
                     }`}
                   >
                     Mais antigas
@@ -275,8 +275,8 @@ export function NotesScreen({
                       setSortOrder('az');
                       setShowSortDropdown(false);
                     }}
-                    className={`w-full px-2.5 py-1.5 rounded-lg text-xs text-left cursor-pointer ${
-                      sortOrder === 'az' ? 'bg-orange-500 text-white font-medium' : 'text-white/80 hover:bg-white/10'
+                    className={`w-full px-2.5 py-1.5 rounded-xl text-xs text-left cursor-pointer transition-colors ${
+                      sortOrder === 'az' ? 'bg-orange-500 text-white font-semibold' : 'text-slate-700 hover:bg-slate-100 font-medium'
                     }`}
                   >
                     Ordem A–Z
@@ -505,7 +505,7 @@ export function NotesScreen({
       <footer className="pt-2 pb-1" data-purpose="bottom-bar">
         <div className="flex items-center gap-2.5">
           <div className="ios-glass-search flex-1 h-11 rounded-full flex items-center px-4 gap-2.5">
-            <Search className="w-4 h-4 text-gray-500 flex-shrink-0" />
+            <Search className="w-4 h-4 text-[#de7649] shrink-0" />
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -525,10 +525,10 @@ export function NotesScreen({
 
           <button
             onClick={onNewNote}
-            className="w-11 h-11 rounded-full bg-orange-500 hover:bg-orange-600 active:scale-95 text-white flex items-center justify-center shadow-lg transition-transform flex-shrink-0 cursor-pointer"
+            className="w-10 h-10 rounded-full bg-[#de7649] hover:bg-[#cf693d] active:scale-95 text-white flex items-center justify-center shadow-md shadow-orange-950/20 transition-transform flex-shrink-0 cursor-pointer"
             title="Criar nota"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4 stroke-[2.2]" />
           </button>
         </div>
 

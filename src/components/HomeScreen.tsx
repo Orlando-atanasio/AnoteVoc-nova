@@ -4,12 +4,14 @@
  */
 
 import React, { useState } from 'react';
-import { Calendar, FileText, Search, X, Plus } from 'lucide-react';
+import { Calendar, FileText, Search, X, Pencil } from 'lucide-react';
 import { WeatherIcon } from '../WeatherIcon.tsx';
-import { Appointment } from '../types.ts';
+import { Appointment, UserProfile } from '../types.ts';
 import { WeatherTheme } from '../themes.ts';
+import { SidebarToggleIcon } from './SidebarToggleIcon.tsx';
 
 interface HomeScreenProps {
+  profile: UserProfile;
   currentTheme: WeatherTheme;
   temperatureDisplay: string;
   conditionDisplay: string;
@@ -23,12 +25,15 @@ interface HomeScreenProps {
   onOpenNewEvent: () => void;
   onSelectEvent: (event: Appointment) => void;
   appointments: Appointment[];
+  onCycleTheme?: () => void;
 }
 
 export function HomeScreen({
+  profile,
   currentTheme,
   temperatureDisplay,
   conditionDisplay,
+  onCycleTheme,
   selectedDay,
   setSelectedDay,
   onOpenDrawer,
@@ -103,29 +108,34 @@ export function HomeScreen({
         <nav className="flex justify-between items-center mt-0.5 mb-1.5" data-purpose="top-navigation">
           <button
             aria-label="Abrir menu lateral"
-            className={`p-1 -ml-1 focus:outline-none cursor-pointer hover:opacity-80 transition-opacity ${navIconColor}`}
+            className="p-1 -ml-1 focus:outline-none cursor-pointer hover:opacity-85 transition-opacity text-[#de7649] drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
             id="menu-toggle-btn"
             type="button"
             onClick={onOpenDrawer}
+            title="Abrir barra lateral"
           >
-            <svg className="w-6 h-6 stroke-[2.2] stroke-current" fill="none" viewBox="0 0 24 24">
-              <line x1="3" x2="21" y1="6" y2="6" />
-              <line x1="3" x2="21" y1="12" y2="12" />
-              <line x1="3" x2="16" y1="18" y2="18" />
-            </svg>
+            <SidebarToggleIcon className="w-5 h-5 stroke-[1.9]" />
           </button>
 
           <button
             aria-label="Perfil do usuário"
-            className={`p-0.5 focus:outline-none cursor-pointer hover:opacity-80 transition-opacity ${navIconColor}`}
+            className={`p-0.5 focus:outline-none cursor-pointer hover:opacity-85 transition-opacity ${navIconColor}`}
             type="button"
             onClick={onOpenProfile}
           >
-            <div className={`w-8 h-8 rounded-full border ${isDarkTop ? 'border-slate-700/60' : 'border-white/60'} flex items-center justify-center`}>
-              <svg className="w-5 h-5 opacity-90" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                <circle cx="12" cy="8" r="4" />
-                <path d="M4 20c0-3.5 3.5-6 8-6s8 2.5 8 6" />
-              </svg>
+            <div className={`w-8 h-8 rounded-full overflow-hidden border ${isDarkTop ? 'border-slate-700/60' : 'border-white/70'} flex items-center justify-center ${isDarkTop ? 'bg-slate-900/10' : 'bg-white/20'} shadow-sm`}>
+              {profile?.avatar ? (
+                <img
+                  src={profile.avatar}
+                  alt={profile.n || 'Perfil'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <svg className="w-5 h-5 opacity-90" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-3.5 3.5-6 8-6s8 2.5 8 6" />
+                </svg>
+              )}
             </div>
           </button>
         </nav>
@@ -137,14 +147,20 @@ export function HomeScreen({
               BOM DIA,
             </span>
             <h1 className={`text-3xl font-bold tracking-tight leading-tight mt-0.5 ${topTextColor}`}>
-              Orlando
+              {profile?.n || 'Orlando'}
             </h1>
             <p className={`text-xs ${topTextSubColor} mt-0.5 font-normal`}>
               Quinta-feira, 22 de outubro
             </p>
           </div>
 
-          <div className="flex items-center gap-2 pt-1 text-right">
+          <button
+            type="button"
+            onClick={onCycleTheme}
+            className="flex items-center gap-2 pt-1 text-right cursor-pointer select-none group hover:opacity-90 active:scale-95 transition-all focus:outline-none"
+            title="Alternar entre as 4 telas"
+            aria-label="Alternar clima e tela de fundo"
+          >
             <WeatherIcon type={currentTheme.id} className="w-10 h-10" />
             <div>
               <div className={`text-2xl font-bold ${topTextColor} leading-none tracking-tight`}>
@@ -154,7 +170,7 @@ export function HomeScreen({
                 {conditionDisplay}
               </div>
             </div>
-          </div>
+          </button>
         </section>
 
         {/* Weekly Calendar Strip */}
@@ -281,7 +297,7 @@ export function HomeScreen({
       <footer className="pt-2 pb-1" data-purpose="bottom-bar">
         <div className="flex items-center gap-2.5 sm:gap-3">
           <form onSubmit={handleSearchSubmit} className="ios-glass-search flex-1 h-11 rounded-full flex items-center px-4 gap-2.5">
-            <Search className="w-4 h-4 text-gray-500 flex-shrink-0" />
+            <Search className="w-4 h-4 text-[#de7649] shrink-0" />
             <input
               aria-label="Buscar notas"
               value={searchQuery}
@@ -301,14 +317,14 @@ export function HomeScreen({
             )}
           </form>
 
-          {/* Orange Floating Action Button (FAB) */}
+          {/* Orange Floating Action Button (FAB) com lápis levemente reduzido */}
           <button
             aria-label="Criar novo item"
             onClick={() => setShowCreateModal(true)}
-            className="w-11 h-11 rounded-full bg-orange-500 hover:bg-orange-600 active:scale-95 text-white flex items-center justify-center shadow-lg transition-transform flex-shrink-0 cursor-pointer"
+            className="w-10 h-10 rounded-full bg-[#de7649] hover:bg-[#cf693d] active:scale-95 text-white flex items-center justify-center shadow-md shadow-orange-950/20 transition-transform flex-shrink-0 cursor-pointer"
             type="button"
           >
-            <Plus className="w-5 h-5" />
+            <Pencil className="w-4 h-4 stroke-[2.2]" />
           </button>
         </div>
 
@@ -321,15 +337,22 @@ export function HomeScreen({
         />
       </footer>
 
-      {/* Quick Action Modal: Nova nota ou Novo compromisso */}
+      {/* Quick Action Modal: Nova nota ou Novo compromisso (Estilo Claro / Glass) */}
       {showCreateModal && (
-        <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-xs bg-slate-900/95 border border-white/20 rounded-3xl p-5 shadow-2xl backdrop-blur-xl animate-fadeIn text-left">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowCreateModal(false);
+            }
+          }}
+          className="absolute inset-0 bg-black/35 z-50 flex items-center justify-center p-4 backdrop-blur-xs animate-fadeIn"
+        >
+          <div className="w-full max-w-xs bg-white/95 border border-white/80 rounded-3xl p-5 shadow-2xl backdrop-blur-2xl text-left">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-semibold text-white">Criar novo</h3>
+              <h3 className="text-base font-bold text-slate-800">Criar novo</h3>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-white/60 hover:text-white p-1"
+                className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -340,14 +363,14 @@ export function HomeScreen({
                   setShowCreateModal(false);
                   onOpenNewNote();
                 }}
-                className="w-full flex items-center gap-3.5 p-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm transition-colors text-left"
+                className="w-full flex items-center gap-3.5 p-3 rounded-2xl bg-slate-100/80 hover:bg-slate-100 text-slate-800 font-medium text-sm transition-colors text-left border border-slate-200/60 shadow-xs cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center shadow-md">
+                <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center shadow-md flex-shrink-0">
                   <FileText className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div className="font-semibold">Nova Nota</div>
-                  <div className="text-[11px] text-white/60">Texto, listas, tabelas e imagens</div>
+                  <div className="font-bold text-slate-800">Nova Nota</div>
+                  <div className="text-[11px] text-slate-500">Texto, listas, tabelas e imagens</div>
                 </div>
               </button>
 
@@ -356,14 +379,14 @@ export function HomeScreen({
                   setShowCreateModal(false);
                   onOpenNewEvent();
                 }}
-                className="w-full flex items-center gap-3.5 p-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm transition-colors text-left"
+                className="w-full flex items-center gap-3.5 p-3 rounded-2xl bg-slate-100/80 hover:bg-slate-100 text-slate-800 font-medium text-sm transition-colors text-left border border-slate-200/60 shadow-xs cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shadow-md">
+                <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shadow-md flex-shrink-0">
                   <Calendar className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div className="font-semibold">Novo Compromisso</div>
-                  <div className="text-[11px] text-white/60">Data, hora, categoria e lembretes</div>
+                  <div className="font-bold text-slate-800">Novo Compromisso</div>
+                  <div className="text-[11px] text-slate-500">Data, hora, categoria e lembretes</div>
                 </div>
               </button>
             </div>

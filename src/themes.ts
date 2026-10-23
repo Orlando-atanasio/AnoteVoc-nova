@@ -26,7 +26,7 @@ export const WEATHER_THEMES: WeatherTheme[] = [
     // Golden sunrise/sunset over mountain lake with golden reflection
     imageUrl: 'https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?auto=format&fit=crop&w=1000&q=85',
     gradientOverlay: 'linear-gradient(180deg, rgba(254, 243, 199, 0.42) 0%, rgba(245, 158, 11, 0.18) 40%, rgba(15, 23, 42, 0.65) 100%)',
-    sidebarGradient: 'linear-gradient(180deg, rgba(38, 25, 18, 0.82) 0%, rgba(18, 12, 8, 0.94) 100%)',
+    sidebarGradient: 'linear-gradient(180deg, rgba(254, 243, 199, 0.42) 0%, rgba(245, 158, 11, 0.18) 40%, rgba(15, 23, 42, 0.65) 100%)',
     isDarkTopText: true,
     accentColor: '#f97316',
   },
@@ -38,7 +38,7 @@ export const WEATHER_THEMES: WeatherTheme[] = [
     // Blue sky with cumulus clouds over mountains and lake
     imageUrl: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1000&q=85',
     gradientOverlay: 'linear-gradient(180deg, rgba(14, 60, 115, 0.25) 0%, rgba(12, 38, 70, 0.45) 50%, rgba(10, 20, 32, 0.82) 100%)',
-    sidebarGradient: 'linear-gradient(180deg, rgba(15, 35, 62, 0.82) 0%, rgba(8, 18, 30, 0.94) 100%)',
+    sidebarGradient: 'linear-gradient(180deg, rgba(14, 60, 115, 0.25) 0%, rgba(12, 38, 70, 0.45) 50%, rgba(10, 20, 32, 0.82) 100%)',
     isDarkTopText: false,
     accentColor: '#f97316',
   },
@@ -50,7 +50,7 @@ export const WEATHER_THEMES: WeatherTheme[] = [
     // Misty overcast lake with pine trees and rain streaks
     imageUrl: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=1000&q=85',
     gradientOverlay: 'linear-gradient(180deg, rgba(30, 48, 64, 0.45) 0%, rgba(18, 30, 42, 0.6) 55%, rgba(12, 22, 30, 0.88) 100%)',
-    sidebarGradient: 'linear-gradient(180deg, rgba(20, 35, 48, 0.82) 0%, rgba(10, 18, 26, 0.94) 100%)',
+    sidebarGradient: 'linear-gradient(180deg, rgba(30, 48, 64, 0.45) 0%, rgba(18, 30, 42, 0.6) 55%, rgba(12, 22, 30, 0.88) 100%)',
     isDarkTopText: false,
     hasRainOverlay: true,
     accentColor: '#f97316',
@@ -63,7 +63,7 @@ export const WEATHER_THEMES: WeatherTheme[] = [
     // Dark nocturnal sky with electric lightning bolts over lake
     imageUrl: 'https://images.unsplash.com/photo-1605727216801-e27ce1d0cc28?auto=format&fit=crop&w=1000&q=85',
     gradientOverlay: 'linear-gradient(180deg, rgba(15, 23, 42, 0.38) 0%, rgba(30, 27, 75, 0.52) 55%, rgba(10, 15, 30, 0.9) 100%)',
-    sidebarGradient: 'linear-gradient(180deg, rgba(18, 22, 48, 0.86) 0%, rgba(8, 10, 24, 0.96) 100%)',
+    sidebarGradient: 'linear-gradient(180deg, rgba(15, 23, 42, 0.38) 0%, rgba(30, 27, 75, 0.52) 55%, rgba(10, 15, 30, 0.9) 100%)',
     isDarkTopText: false,
     hasLightningOverlay: true,
     accentColor: '#f97316',

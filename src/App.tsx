@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { WEATHER_THEMES, WeatherTheme } from './themes.ts';
-import { getSilentLiveWeather } from './weatherService.ts';
 import { Note, Appointment, FolderItem, UserProfile, AppSettings } from './types.ts';
 import {
   loadNotes,
@@ -38,6 +37,7 @@ export default function App() {
   const [previousScreen, setPreviousScreen] = useState<ActiveScreen>('home');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState(22);
+  const [calendarInitialOpenCreate, setCalendarInitialOpenCreate] = useState(false);
 
   // Data states
   const [notes, setNotes] = useState<Note[]>(() => loadNotes());
@@ -105,14 +105,15 @@ export default function App() {
   }, [folders]);
 
   const currentTheme: WeatherTheme = WEATHER_THEMES[themeIndex];
-  const temperatureDisplay = liveTemp || currentTheme.temperature;
-  const conditionDisplay = liveCondition || currentTheme.condition;
+  const temperatureDisplay = currentTheme.temperature;
+  const conditionDisplay = currentTheme.condition;
 
   // Folder paths list
   const allFolderPaths = folders.map((f) => (f.p ? `${f.p}/${f.n}` : f.n));
 
   // Handlers
   const handleNavigate = (target: string, folderKey?: string | null) => {
+    setCalendarInitialOpenCreate(false);
     if (target === 'inicio') {
       setActiveNav('inicio');
       setActiveScreen('home');
@@ -216,12 +217,12 @@ export default function App() {
   };
 
   // Folder management
-  const handleCreateFolder = (name: string, parentPath?: string) => {
+  const handleCreateFolder = (name: string, parentPath?: string, icon?: string) => {
     const newF: FolderItem = {
       id: `f_${Date.now()}`,
       n: name,
       p: parentPath,
-      i: 'folder',
+      i: icon || 'folder',
     };
     setFolders([...folders, newF]);
   };
@@ -235,6 +236,50 @@ export default function App() {
       setNotes((prev) =>
         prev.map((n) => (n.p && n.p.startsWith(targetPath) ? { ...n, p: 'Sem pasta' } : n))
       );
+    }
+  };
+
+  const handleRenameFolder = (folderId: string, newName: string, newIcon?: string) => {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    const target = folders.find((f) => f.id === folderId);
+    if (!target) return;
+
+    const oldName = target.n;
+    const oldPath = target.p ? `${target.p}/${oldName}` : oldName;
+    const newPath = target.p ? `${target.p}/${trimmed}` : trimmed;
+
+    // Update folders list
+    setFolders((prev) =>
+      prev.map((f) => {
+        if (f.id === folderId) {
+          return { ...f, n: trimmed, i: newIcon ?? f.i };
+        }
+        if (!target.p && f.p === oldName) {
+          return { ...f, p: trimmed };
+        }
+        return f;
+      })
+    );
+
+    // Update notes path
+    setNotes((prev) =>
+      prev.map((note) => {
+        if (!note.p) return note;
+        if (note.p === oldPath) {
+          return { ...note, p: newPath, mt: Date.now() };
+        }
+        if (note.p.startsWith(`${oldPath}/`)) {
+          return { ...note, p: `${newPath}${note.p.slice(oldPath.length)}`, mt: Date.now() };
+        }
+        return note;
+      })
+    );
+
+    // Update active filter if user is on this folder
+    if (activeFolderFilter === oldPath) {
+      setActiveFolderFilter(newPath);
+      setActiveNav(newPath);
     }
   };
 
@@ -252,10 +297,35 @@ export default function App() {
         ajustes: settings,
       },
     };
-    const nextBackups = [item, ...backups].slice(0, 5);
+    // Always keep only 1 single latest backup
+    const nextBackups = [item];
     setBackups(nextBackups);
     saveBackups(nextBackups);
-    alert('Backup criado com sucesso e salvo localmente!');
+
+    // Immediately trigger JSON download
+    const data = {
+      app: 'AnoteVocê',
+      version: '1.0.0',
+      exportedAt: new Date().toISOString(),
+      notas: notes,
+      compromissos: appointments,
+      pastas: folders,
+      perfil: profile,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `anotevoce-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDeleteBackup = () => {
+    if (confirm('Deseja excluir o ponto de restauração salvo?')) {
+      setBackups([]);
+      saveBackups([]);
+    }
   };
 
   const handleRestoreBackup = (bItem: BackupItem) => {
@@ -348,52 +418,70 @@ export default function App() {
   };
 
   return (
-    <div className="bg-slate-900 min-h-screen w-full flex flex-col justify-center items-center font-sans select-none overflow-hidden p-0 sm:p-3">
-      {/* Phone Mockup Frame */}
-      <main
-        className="relative w-full max-w-[380px] h-[100dvh] sm:h-[min(812px,94vh)] sm:rounded-[46px] overflow-hidden shadow-2xl flex flex-col justify-between sm:border-[7px] sm:border-slate-800 sm:ring-1 sm:ring-white/10 [contain:paint] isolate [transform:translateZ(0)]"
-        style={{
-          backgroundImage:
-            activeScreen === 'home' || activeScreen === 'notes' || activeScreen === 'calendar'
-              ? `${currentTheme.gradientOverlay}, url('${currentTheme.imageUrl}')`
-              : `linear-gradient(180deg, rgba(246, 250, 252, 0.90) 0%, rgba(234, 242, 247, 0.94) 50%, rgba(224, 236, 242, 0.96) 100%), url('${currentTheme.imageUrl}')`,
-          backgroundPosition: 'center center',
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-          transition: 'background-image 0.6s ease-in-out',
-        }}
-      >
-        {/* Dynamic weather effects: on home, notes, and calendar screens */}
-        {(activeScreen === 'home' || activeScreen === 'notes' || activeScreen === 'calendar') && currentTheme.hasRainOverlay && (
-          <div className="rain-overlay absolute inset-0 pointer-events-none z-0 opacity-70" />
-        )}
-        {(activeScreen === 'home' || activeScreen === 'notes' || activeScreen === 'calendar') && currentTheme.hasLightningOverlay && (
-          <div className="lightning-flash absolute inset-0 bg-blue-100 pointer-events-none z-0" />
-        )}
-        {(activeScreen === 'home' || activeScreen === 'notes' || activeScreen === 'calendar') && currentTheme.id === 'sun' && (
-          <div className="sun-glow absolute -top-8 -left-8 w-64 h-64 rounded-full bg-amber-300/30 blur-3xl pointer-events-none z-0" />
-        )}
+    <div className="bg-slate-950 min-h-screen w-full flex flex-col justify-center items-center font-sans select-none overflow-hidden p-2 sm:p-4">
+      {/* Phone Mockup Frame (Phone chassis body) */}
+      <main className="relative w-full max-w-[380px] h-[min(812px,96vh)] max-h-[844px] rounded-[50px] p-[8px] bg-slate-800 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.12)] ring-1 ring-black/60 flex flex-col justify-between isolate">
+        {/* Inner Phone Screen (strictly clipped to phone body screen radius) */}
+        <div
+          className="relative w-full h-full rounded-[42px] overflow-hidden flex flex-col justify-between isolate @container bg-slate-900"
+          style={{
+            clipPath: 'inset(0 round 42px)',
+            WebkitClipPath: 'inset(0 round 42px)',
+          }}
+        >
+          {/* Layered backgrounds for all 4 themes with silky-smooth crossfade transition */}
+          {WEATHER_THEMES.map((theme, idx) => (
+            <div
+              key={theme.id}
+              className={`absolute inset-0 pointer-events-none transition-opacity duration-1000 ease-in-out ${
+                themeIndex === idx ? 'opacity-100 z-0' : 'opacity-0 z-0'
+              }`}
+              style={{
+                backgroundImage:
+                  activeScreen === 'home' || activeScreen === 'notes' || activeScreen === 'calendar' || activeScreen === 'settings'
+                    ? `${theme.gradientOverlay}, url('${theme.imageUrl}')`
+                    : `linear-gradient(180deg, rgba(246, 250, 252, 0.90) 0%, rgba(234, 242, 247, 0.94) 50%, rgba(224, 236, 242, 0.96) 100%), url('${theme.imageUrl}')`,
+                backgroundPosition: 'center center',
+                backgroundSize: 'cover',
+                backgroundRepeat: 'no-repeat',
+              }}
+            >
+              {/* Dynamic weather effects: strictly contained inside the screen */}
+              {(activeScreen === 'home' || activeScreen === 'notes' || activeScreen === 'calendar' || activeScreen === 'settings') && theme.hasRainOverlay && (
+                <div className="rain-overlay absolute inset-0 pointer-events-none opacity-70" />
+              )}
+              {(activeScreen === 'home' || activeScreen === 'notes' || activeScreen === 'calendar' || activeScreen === 'settings') && theme.hasLightningOverlay && (
+                <div className="lightning-flash absolute inset-0 bg-blue-100 pointer-events-none" />
+              )}
+              {(activeScreen === 'home' || activeScreen === 'notes' || activeScreen === 'calendar' || activeScreen === 'settings') && theme.id === 'sun' && (
+                <div className="sun-glow absolute top-0 left-0 w-48 h-48 rounded-full bg-amber-300/25 blur-2xl pointer-events-none" />
+              )}
+            </div>
+          ))}
 
-        {/* Dynamic Island */}
-        <div className="hidden sm:flex absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-6 bg-black rounded-full z-30 items-center justify-between px-2.5 shadow-sm border border-white/5 pointer-events-none">
-          <div className="w-2 h-2 rounded-full bg-slate-950 border border-slate-800 flex items-center justify-center">
-            <div className="w-0.5 h-0.5 rounded-full bg-blue-900" />
+          {/* Dynamic Island */}
+          <div className="flex absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-6 bg-black rounded-full z-30 items-center justify-between px-2.5 shadow-sm border border-white/5 pointer-events-none">
+            <div className="w-2 h-2 rounded-full bg-slate-950 border border-slate-800 flex items-center justify-center">
+              <div className="w-0.5 h-0.5 rounded-full bg-blue-900" />
+            </div>
+            <div className="w-2 h-2 rounded-full bg-slate-950 border border-slate-800" />
           </div>
-          <div className="w-2 h-2 rounded-full bg-slate-950 border border-slate-800" />
-        </div>
 
         {/* Active Screen Router */}
         {activeScreen === 'home' && (
           <HomeScreen
+            profile={profile}
             currentTheme={currentTheme}
             temperatureDisplay={temperatureDisplay}
             conditionDisplay={conditionDisplay}
+            onCycleTheme={() => setThemeIndex((c) => (c + 1) % WEATHER_THEMES.length)}
             selectedDay={selectedDay}
             setSelectedDay={setSelectedDay}
             onOpenDrawer={() => setIsDrawerOpen(true)}
             onOpenProfile={() => setActiveScreen('settings')}
             onOpenCalendar={() => {
               setActiveNav('calendario');
+              setCalendarInitialOpenCreate(false);
               setActiveScreen('calendar');
             }}
             onOpenNotes={(q) => {
@@ -405,10 +493,12 @@ export default function App() {
             onOpenNewNote={handleNewNote}
             onOpenNewEvent={() => {
               setActiveNav('calendario');
+              setCalendarInitialOpenCreate(true);
               setActiveScreen('calendar');
             }}
             onSelectEvent={(ev) => {
               setActiveNav('calendario');
+              setCalendarInitialOpenCreate(false);
               setActiveScreen('calendar');
             }}
             appointments={appointments}
@@ -447,6 +537,7 @@ export default function App() {
             }}
             onOpenCalendar={() => {
               setActiveNav('calendario');
+              setCalendarInitialOpenCreate(false);
               setActiveScreen('calendar');
             }}
           />
@@ -456,8 +547,15 @@ export default function App() {
           <CalendarScreen
             appointments={appointments}
             currentTheme={currentTheme}
-            onBack={() => setActiveScreen('home')}
-            onSaveAppointment={handleSaveAppointment}
+            initialOpenCreate={calendarInitialOpenCreate}
+            onBack={() => {
+              setCalendarInitialOpenCreate(false);
+              setActiveScreen('home');
+            }}
+            onSaveAppointment={(appt) => {
+              handleSaveAppointment(appt);
+              setCalendarInitialOpenCreate(false);
+            }}
             onDeleteAppointment={handleDeleteAppointment}
           />
         )}
@@ -479,6 +577,7 @@ export default function App() {
             }}
             onCreateBackup={handleCreateBackup}
             onRestoreBackup={handleRestoreBackup}
+            onDeleteBackup={handleDeleteBackup}
             onExportJson={handleExportJson}
             onExportTxt={handleExportTxt}
             onImportFiles={handleImportFiles}
@@ -492,11 +591,14 @@ export default function App() {
           activeNav={activeNav}
           notes={notes}
           folders={folders}
+          profile={profile}
           onClose={() => setIsDrawerOpen(false)}
           onNavigate={handleNavigate}
           onCreateFolder={handleCreateFolder}
           onDeleteFolder={handleDeleteFolder}
+          onRenameFolder={handleRenameFolder}
         />
+        </div>
       </main>
     </div>
   );
