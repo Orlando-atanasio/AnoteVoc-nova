@@ -543,11 +543,6 @@ export default function App() {
             onBack={() => {
               setActiveScreen(previousScreen === 'home' ? 'home' : 'notes');
             }}
-            onGoHome={() => {
-              setActiveNav('inicio');
-              setActiveFolderFilter(null);
-              setActiveScreen('home');
-            }}
             onSaveNote={handleSaveNote}
             onDeleteNote={(id) => {
               handleDeleteNote(id);

@@ -5,9 +5,8 @@
 
 import React, { useState, useMemo } from 'react';
 import {
-  Menu,
   Home,
-  Plus,
+  Pencil,
   Search,
   Check,
   Trash2,
@@ -23,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Note } from '../types.ts';
 import { WeatherTheme } from '../themes.ts';
+import { SidebarToggleIcon } from './SidebarToggleIcon.tsx';
 
 interface NotesScreenProps {
   notes: Note[];
@@ -182,11 +182,11 @@ export function NotesScreen({
           <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={onOpenDrawer}
-              className={`p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${navIconColor}`}
-              title="Barra lateral"
+              className="p-1 focus:outline-none cursor-pointer text-[#de7649] hover:text-[#cf693d] drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] transition-opacity"
+              title="Recolher / Estender barra lateral"
               aria-label="Abrir barra lateral"
             >
-              <Menu className="w-5 h-5" />
+              <SidebarToggleIcon className="w-5 h-5 stroke-[1.9]" />
             </button>
             <button
               onClick={onGoHome}
@@ -205,14 +205,6 @@ export function NotesScreen({
               </small>
             </div>
           </div>
-
-          <button
-            onClick={onNewNote}
-            className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center shadow-md cursor-pointer transition-transform active:scale-95"
-            title="Criar nova nota"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
         </div>
 
         {/* View Options & Selection Toolbar */}
@@ -540,8 +532,9 @@ export function NotesScreen({
             onClick={onNewNote}
             className="w-10 h-10 rounded-full bg-[#de7649] hover:bg-[#cf693d] active:scale-95 text-white flex items-center justify-center shadow-md shadow-orange-950/20 transition-transform flex-shrink-0 cursor-pointer"
             title="Criar nota"
+            aria-label="Criar nova nota"
           >
-            <Plus className="w-4 h-4 stroke-[2.2]" />
+            <Pencil className="w-4 h-4 stroke-[2.2]" />
           </button>
         </div>
 

@@ -24,7 +24,9 @@ import {
   X,
   Plus,
   Trash,
-  Home,
+  ScanLine,
+  Search,
+  Folder,
 } from 'lucide-react';
 import { Note, NoteTable, NoteTask } from '../types.ts';
 import { WeatherTheme } from '../themes.ts';
@@ -34,7 +36,6 @@ interface NoteEditorScreenProps {
   currentTheme: WeatherTheme;
   allFolderPaths: string[];
   onBack: () => void;
-  onGoHome?: () => void;
   onSaveNote: (updatedNote: Note) => void;
   onDeleteNote: (noteId: string) => void;
   onOpenCalendar: () => void;
@@ -45,7 +46,6 @@ export function NoteEditorScreen({
   currentTheme,
   allFolderPaths,
   onBack,
-  onGoHome,
   onSaveNote,
   onDeleteNote,
   onOpenCalendar,
@@ -93,12 +93,20 @@ export function NoteEditorScreen({
   const [showColorPanel, setShowColorPanel] = useState(false);
   const [colorMode, setColorMode] = useState<'text' | 'page' | 'highlight'>('text');
   const [showMoveFolderModal, setShowMoveFolderModal] = useState(false);
+  const [showInNoteSearch, setShowInNoteSearch] = useState(false);
+  const [inNoteQuery, setInNoteQuery] = useState('');
 
   // Undo/Redo stack
   const [history, setHistory] = useState<string[]>([bodyText]);
   const [historyIdx, setHistoryIdx] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scannerFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleScanClick = () => {
+    setShowMoreMenu(false);
+    scannerFileInputRef.current?.click();
+  };
 
   // Auto-save note changes
   useEffect(() => {
@@ -274,27 +282,15 @@ export function NoteEditorScreen({
     >
       {/* Top Navigation Bar: Edge-to-edge, clean iOS blur */}
       <header className="px-4 pt-3 pb-2.5 flex items-center justify-between border-b border-slate-200/80 bg-white/90 backdrop-blur-md flex-shrink-0 z-10 rounded-t-[42px]">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-1 text-[#1f3d4e] hover:text-black text-xs font-semibold px-2 py-1.5 rounded-xl hover:bg-slate-200/50 transition-colors cursor-pointer"
-            title="Voltar à pasta"
-            aria-label="Voltar"
-          >
-            <ChevronLeft className="w-5 h-5 text-[#2c6a80]" />
-            <span className="truncate max-w-[105px]">{currentFolder.replace('/', ' › ')}</span>
-          </button>
-          {onGoHome && (
-            <button
-              onClick={onGoHome}
-              className="p-1.5 text-[#2c6a80] hover:text-[#1f3d4e] rounded-xl hover:bg-slate-200/50 transition-colors cursor-pointer"
-              title="Início / Dashboard"
-              aria-label="Ir para o Dashboard"
-            >
-              <Home className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1 text-[#1f3d4e] hover:text-black text-xs font-semibold px-2 py-1.5 rounded-xl hover:bg-slate-200/50 transition-colors cursor-pointer"
+          title="Voltar à pasta"
+          aria-label="Voltar"
+        >
+          <ChevronLeft className="w-5 h-5 text-[#2c6a80]" />
+          <span className="truncate max-w-[120px]">{currentFolder.replace('/', ' › ')}</span>
+        </button>
 
         <div className="flex items-center gap-1">
           <button
@@ -321,13 +317,6 @@ export function NoteEditorScreen({
             <Share2 className="w-4 h-4" />
           </button>
           <button
-            onClick={() => setIsFavorite(!isFavorite)}
-            className="p-1.5 rounded-lg hover:bg-slate-200/50 cursor-pointer text-amber-500"
-            title={isFavorite ? 'Remover dos favoritos' : 'Favoritar nota'}
-          >
-            <Star className={`w-4 h-4 ${isFavorite ? 'fill-amber-400' : 'text-slate-400'}`} />
-          </button>
-          <button
             onClick={() => setShowMoreMenu(!showMoreMenu)}
             className="p-1.5 text-[#2f5d70] hover:text-black rounded-lg hover:bg-slate-200/50 cursor-pointer"
             title="Mais opções"
@@ -336,6 +325,45 @@ export function NoteEditorScreen({
           </button>
         </div>
       </header>
+
+      {/* Hidden scanner / document capture input */}
+      <input
+        ref={scannerFileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleImageUpload}
+      />
+
+      {/* In-Note Search Bar */}
+      {showInNoteSearch && (
+        <div className="px-4 py-2 bg-white/95 border-b border-slate-200/90 flex items-center gap-2 animate-fadeIn z-20 shadow-xs">
+          <Search className="w-4 h-4 text-[#2b4c60] shrink-0" />
+          <input
+            value={inNoteQuery}
+            onChange={(e) => setInNoteQuery(e.target.value)}
+            placeholder="Buscar nesta nota..."
+            className="w-full bg-transparent border-none text-xs text-slate-800 placeholder-slate-400 focus:outline-none p-0"
+            autoFocus
+          />
+          {inNoteQuery && (
+            <span className="text-[10px] text-slate-500 whitespace-nowrap">
+              {bodyText.toLowerCase().split(inNoteQuery.toLowerCase()).length - 1} ocorrência(s)
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setShowInNoteSearch(false);
+              setInNoteQuery('');
+            }}
+            className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Note Paper Canvas: Full-bleed notebook sheet taking the entire screen */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 sm:px-6 py-4 flex flex-col">
@@ -652,77 +680,164 @@ export function NoteEditorScreen({
         </div>
       )}
 
-      {/* More Options Dropdown Menu */}
+      {/* More Options Dropdown Menu (Conforme o print) */}
       {showMoreMenu && (
-        <div className="absolute top-12 right-3 w-56 bg-white/98 border border-slate-200 rounded-2xl p-1.5 shadow-2xl backdrop-blur-2xl z-50 text-left text-xs animate-fadeIn">
-          <button
-            onClick={() => {
-              setIsPinned(!isPinned);
-              setShowMoreMenu(false);
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#1f3d4e] hover:bg-slate-100 cursor-pointer"
-          >
-            <Pin className="w-4 h-4 text-orange-500" />
-            <span>{isPinned ? 'Desafixar nota' : 'Fixar nota'}</span>
-          </button>
+        <div className="absolute top-12 right-3 w-60 bg-white/98 border border-slate-200/90 rounded-2xl p-1.5 shadow-2xl backdrop-blur-2xl z-50 text-left text-xs animate-fadeIn divide-y divide-slate-100 max-h-[82vh] overflow-y-auto no-scrollbar">
+          <div className="space-y-0.5">
+            {/* 1. Escanear */}
+            <button
+              type="button"
+              onClick={handleScanClick}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[#1a384c] hover:bg-slate-100/80 transition-colors cursor-pointer"
+            >
+              <ScanLine className="w-4 h-4 text-[#2b4c60]" />
+              <span className="text-xs sm:text-[13px] font-medium">Escanear</span>
+            </button>
 
-          <button
-            onClick={() => {
-              setIsLocked(!isLocked);
-              setShowMoreMenu(false);
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#1f3d4e] hover:bg-slate-100 cursor-pointer"
-          >
-            {isLocked ? <Unlock className="w-4 h-4 text-emerald-600" /> : <Lock className="w-4 h-4 text-amber-600" />}
-            <span>{isLocked ? 'Desbloquear nota' : 'Bloquear nota'}</span>
-          </button>
+            {/* 2. Fixar / Desafixar nota */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsPinned(!isPinned);
+                setShowMoreMenu(false);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[#1a384c] hover:bg-slate-100/80 transition-colors cursor-pointer"
+            >
+              <Pin className="w-4 h-4 text-[#2b4c60]" />
+              <span className="text-xs sm:text-[13px] font-medium">
+                {isPinned ? 'Desafixar nota' : 'Fixar nota'}
+              </span>
+            </button>
 
-          <button
-            onClick={() => {
-              setShowMoveFolderModal(true);
-              setShowMoreMenu(false);
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#1f3d4e] hover:bg-slate-100 cursor-pointer"
-          >
-            <FolderInput className="w-4 h-4 text-blue-500" />
-            <span>Mover para pasta</span>
-          </button>
+            {/* 3. Favoritos: Remover dos favoritos / Adicionar aos favoritos */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsFavorite(!isFavorite);
+                setShowMoreMenu(false);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[#1a384c] hover:bg-slate-100/80 transition-colors cursor-pointer"
+            >
+              <Star
+                className={`w-4 h-4 ${
+                  isFavorite ? 'fill-amber-400 text-amber-500' : 'text-[#2b4c60]'
+                }`}
+              />
+              <span className="text-xs sm:text-[13px] font-medium">
+                {isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+              </span>
+            </button>
 
-          <button
-            onClick={() => {
-              setShowMoreMenu(false);
-              onOpenCalendar();
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#1f3d4e] hover:bg-slate-100 cursor-pointer"
-          >
-            <Calendar className="w-4 h-4 text-indigo-500" />
-            <span>Consultar calendário</span>
-          </button>
+            {/* 4. Bloquear nota / Desbloquear nota */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsLocked(!isLocked);
+                setShowMoreMenu(false);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[#1a384c] hover:bg-slate-100/80 transition-colors cursor-pointer"
+            >
+              {isLocked ? (
+                <Unlock className="w-4 h-4 text-emerald-600" />
+              ) : (
+                <Lock className="w-4 h-4 text-[#2b4c60]" />
+              )}
+              <span className="text-xs sm:text-[13px] font-medium">
+                {isLocked ? 'Desbloquear nota' : 'Bloquear nota'}
+              </span>
+            </button>
 
-          {/* Paper Format Option */}
-          <div className="p-2 border-t border-slate-200 mt-1">
-            <span className="text-[10px] text-slate-500 uppercase font-semibold block mb-1.5">Fundo do papel</span>
+            {/* Buscar na nota */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowMoreMenu(false);
+                setShowInNoteSearch(true);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[#1a384c] hover:bg-slate-100/80 transition-colors cursor-pointer"
+            >
+              <Search className="w-4 h-4 text-[#2b4c60]" />
+              <span className="text-xs sm:text-[13px] font-medium">Buscar na nota</span>
+            </button>
+
+            {/* 7. Consultar calendário */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowMoreMenu(false);
+                onOpenCalendar();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[#1a384c] hover:bg-slate-100/80 transition-colors cursor-pointer"
+            >
+              <Calendar className="w-4 h-4 text-[#2b4c60]" />
+              <span className="text-xs sm:text-[13px] font-medium">Consultar calendário</span>
+            </button>
+
+            {/* 8. Mover nota */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowMoveFolderModal(true);
+                setShowMoreMenu(false);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[#1a384c] hover:bg-slate-100/80 transition-colors cursor-pointer"
+            >
+              <Folder className="w-4 h-4 text-[#2b4c60]" />
+              <span className="text-xs sm:text-[13px] font-medium">Mover nota</span>
+            </button>
+
+            {/* 9. Arquivar nota */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsArchived(!isArchived);
+                setShowMoreMenu(false);
+                onBack();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[#1a384c] hover:bg-slate-100/80 transition-colors cursor-pointer"
+            >
+              <Archive className="w-4 h-4 text-[#2b4c60]" />
+              <span className="text-xs sm:text-[13px] font-medium">
+                {isArchived ? 'Desarquivar nota' : 'Arquivar nota'}
+              </span>
+            </button>
+          </div>
+
+          {/* 10. Paper Format Option (Linha, linhas, branco e pontos) */}
+          <div className="p-2 pt-2.5">
+            <span className="text-[10px] text-slate-500 uppercase font-semibold block mb-1.5 px-1">
+              Fundo do papel
+            </span>
             <div className="grid grid-cols-3 gap-1">
               <button
+                type="button"
                 onClick={() => setFormat('line')}
-                className={`py-1 rounded-lg text-center cursor-pointer ${
-                  format === 'line' ? 'bg-orange-500 text-white font-medium shadow-sm' : 'bg-slate-100 text-slate-700'
+                className={`py-1 rounded-lg text-center cursor-pointer transition-colors ${
+                  format === 'line'
+                    ? 'bg-orange-500 text-white font-medium shadow-sm'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 Linhas
               </button>
               <button
+                type="button"
                 onClick={() => setFormat('none')}
-                className={`py-1 rounded-lg text-center cursor-pointer ${
-                  format === 'none' ? 'bg-orange-500 text-white font-medium shadow-sm' : 'bg-slate-100 text-slate-700'
+                className={`py-1 rounded-lg text-center cursor-pointer transition-colors ${
+                  format === 'none'
+                    ? 'bg-orange-500 text-white font-medium shadow-sm'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 Branco
               </button>
               <button
+                type="button"
                 onClick={() => setFormat('dot')}
-                className={`py-1 rounded-lg text-center cursor-pointer ${
-                  format === 'dot' ? 'bg-orange-500 text-white font-medium shadow-sm' : 'bg-slate-100 text-slate-700'
+                className={`py-1 rounded-lg text-center cursor-pointer transition-colors ${
+                  format === 'dot'
+                    ? 'bg-orange-500 text-white font-medium shadow-sm'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 Pontos
@@ -730,31 +845,21 @@ export function NoteEditorScreen({
             </div>
           </div>
 
-          <div className="border-t border-slate-200 my-1" />
-
-          <button
-            onClick={() => {
-              setIsArchived(!isArchived);
-              setShowMoreMenu(false);
-              onBack();
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#1f3d4e] hover:bg-slate-100 cursor-pointer"
-          >
-            <Archive className="w-4 h-4 text-amber-600" />
-            <span>{isArchived ? 'Desarquivar nota' : 'Arquivar nota'}</span>
-          </button>
-
-          <button
-            onClick={() => {
-              onDeleteNote(note.id);
-              setShowMoreMenu(false);
-              onBack();
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-600 hover:bg-red-50 cursor-pointer font-medium"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>Mover para lixeira</span>
-          </button>
+          {/* 11. Mover para lixeira */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                onDeleteNote(note.id);
+                setShowMoreMenu(false);
+                onBack();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-600 hover:bg-red-50 transition-colors cursor-pointer font-medium"
+            >
+              <Trash2 className="w-4 h-4 text-red-500" />
+              <span className="text-xs sm:text-[13px]">Mover para lixeira</span>
+            </button>
+          </div>
         </div>
       )}
 
