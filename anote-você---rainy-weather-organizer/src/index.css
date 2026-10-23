@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.text-shadow-sm {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.text-shadow-light {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4);
+}
+
+/* Rain streak texture layer */
+.rain-overlay {
+  background-image: repeating-linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0) 0px,
+    rgba(255, 255, 255, 0) 18px,
+    rgba(220, 235, 255, 0.09) 19px,
+    rgba(255, 255, 255, 0) 20px
+  );
+  animation: rainShift 0.8s linear infinite;
+}
+
+@keyframes rainShift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: -20px 40px;
+  }
+}
+
+/* Lightning flash effect */
+.lightning-flash {
+  animation: lightningPulse 7s infinite ease-in-out;
+}
+
+@keyframes lightningPulse {
+  0%, 93%, 95%, 98%, 100% {
+    opacity: 0;
+  }
+  94% {
+    opacity: 0.35;
+  }
+  96% {
+    opacity: 0.15;
+  }
+  97% {
+    opacity: 0.45;
+  }
+}
+
+/* Sun ambient shimmer */
+.sun-glow {
+  animation: sunPulse 4s infinite ease-in-out alternate;
+}
+
+@keyframes sunPulse {
+  0% {
+    opacity: 0.25;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 0.45;
+    transform: scale(1.02);
+  }
+}
+
+/* Glassmorphism effects */
+.ios-glass-card-dark {
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.22);
+}
+
+.ios-glass-card-light {
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+}
+
+.ios-glass-card-subtle {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 16px -4px rgba(40, 75, 95, 0.15);
+}
+
+.ios-glass-search {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Notebook paper line patterns - High contrast and visible rules */
+.nf-line {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 31px,
+    rgba(70, 115, 140, 0.22) 31px,
+    rgba(70, 115, 140, 0.22) 32px
+  );
+  background-attachment: local;
+  line-height: 32px;
+}
+
+.nf-dot {
+  background-image: radial-gradient(circle, rgba(70, 115, 140, 0.35) 1.2px, transparent 1.6px);
+  background-size: 32px 32px;
+  background-attachment: local;
+  line-height: 32px;
+}
+
+.nf-none {
+  background: transparent;
+  line-height: 32px;
+}

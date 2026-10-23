@@ -1,0 +1,6 @@
+{
+  "name": "Anote Você - Rainy Weather Organizer",
+  "description": "Organizador pessoal com previsão do tempo, calendário semanal, compromissos e anotações com visual glassmorphic elegante.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
