@@ -7,6 +7,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
+  Home,
   Search,
   Plus,
   Calendar as CalIcon,
@@ -234,15 +235,24 @@ export function CalendarScreen({
       <div className="space-y-2.5">
         {/* Navigation Bar */}
         <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={onBack}
               className={`p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${topTextColor}`}
-              title="Voltar à tela inicial"
+              title="Voltar"
+              aria-label="Voltar"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <h2 className={`text-xl font-bold tracking-tight ${topTextColor}`}>
+            <button
+              onClick={onBack}
+              className={`p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${topTextColor}`}
+              title="Início / Dashboard"
+              aria-label="Ir para o Dashboard"
+            >
+              <Home className="w-5 h-5" />
+            </button>
+            <h2 className={`text-xl font-bold tracking-tight ml-1 ${topTextColor}`}>
               Calendário
             </h2>
           </div>

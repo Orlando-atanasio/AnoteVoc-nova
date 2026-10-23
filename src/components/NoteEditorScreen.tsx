@@ -24,6 +24,7 @@ import {
   X,
   Plus,
   Trash,
+  Home,
 } from 'lucide-react';
 import { Note, NoteTable, NoteTask } from '../types.ts';
 import { WeatherTheme } from '../themes.ts';
@@ -33,6 +34,7 @@ interface NoteEditorScreenProps {
   currentTheme: WeatherTheme;
   allFolderPaths: string[];
   onBack: () => void;
+  onGoHome?: () => void;
   onSaveNote: (updatedNote: Note) => void;
   onDeleteNote: (noteId: string) => void;
   onOpenCalendar: () => void;
@@ -43,6 +45,7 @@ export function NoteEditorScreen({
   currentTheme,
   allFolderPaths,
   onBack,
+  onGoHome,
   onSaveNote,
   onDeleteNote,
   onOpenCalendar,
@@ -271,13 +274,27 @@ export function NoteEditorScreen({
     >
       {/* Top Navigation Bar: Edge-to-edge, clean iOS blur */}
       <header className="px-4 pt-3 pb-2.5 flex items-center justify-between border-b border-slate-200/80 bg-white/90 backdrop-blur-md flex-shrink-0 z-10 rounded-t-[42px]">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1 text-[#1f3d4e] hover:text-black text-xs font-semibold px-2 py-1.5 rounded-xl hover:bg-slate-200/50 transition-colors cursor-pointer"
-        >
-          <ChevronLeft className="w-5 h-5 text-[#2c6a80]" />
-          <span className="truncate max-w-[120px]">{currentFolder.replace('/', ' › ')}</span>
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1 text-[#1f3d4e] hover:text-black text-xs font-semibold px-2 py-1.5 rounded-xl hover:bg-slate-200/50 transition-colors cursor-pointer"
+            title="Voltar à pasta"
+            aria-label="Voltar"
+          >
+            <ChevronLeft className="w-5 h-5 text-[#2c6a80]" />
+            <span className="truncate max-w-[105px]">{currentFolder.replace('/', ' › ')}</span>
+          </button>
+          {onGoHome && (
+            <button
+              onClick={onGoHome}
+              className="p-1.5 text-[#2c6a80] hover:text-[#1f3d4e] rounded-xl hover:bg-slate-200/50 transition-colors cursor-pointer"
+              title="Início / Dashboard"
+              aria-label="Ir para o Dashboard"
+            >
+              <Home className="w-4 h-4" />
+            </button>
+          )}
+        </div>
 
         <div className="flex items-center gap-1">
           <button

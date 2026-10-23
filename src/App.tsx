@@ -228,15 +228,23 @@ export default function App() {
   };
 
   const handleDeleteFolder = (folderId: string) => {
-    const target = folders.find((f) => f.id === folderId);
-    if (!target) return;
-    if (confirm(`Excluir a pasta "${target.n}"? As notas serão mantidas como "Sem pasta".`)) {
-      setFolders(folders.filter((f) => f.id !== folderId));
+    setFolders((prev) => {
+      const target = prev.find((f) => f.id === folderId);
+      if (!target) return prev;
       const targetPath = target.p ? `${target.p}/${target.n}` : target.n;
-      setNotes((prev) =>
-        prev.map((n) => (n.p && n.p.startsWith(targetPath) ? { ...n, p: 'Sem pasta' } : n))
+      // Remap any notes in this folder or its subfolders to "Sem pasta"
+      setNotes((notesPrev) =>
+        notesPrev.map((n) =>
+          n.p && (n.p === targetPath || n.p.startsWith(`${targetPath}/`))
+            ? { ...n, p: 'Sem pasta' }
+            : n
+        )
       );
-    }
+      // Remove folder and its child folders
+      return prev.filter(
+        (f) => f.id !== folderId && f.p !== targetPath && (!f.p || !f.p.startsWith(`${targetPath}/`))
+      );
+    });
   };
 
   const handleRenameFolder = (folderId: string, newName: string, newIcon?: string) => {
@@ -512,6 +520,11 @@ export default function App() {
             activeFolderFilter={activeFolderFilter}
             initialSearchQuery={notesSearchQuery}
             onOpenDrawer={() => setIsDrawerOpen(true)}
+            onGoHome={() => {
+              setActiveNav('inicio');
+              setActiveFolderFilter(null);
+              setActiveScreen('home');
+            }}
             onOpenNote={handleOpenNote}
             onNewNote={handleNewNote}
             onDeleteNote={handleDeleteNote}
@@ -529,6 +542,11 @@ export default function App() {
             allFolderPaths={allFolderPaths}
             onBack={() => {
               setActiveScreen(previousScreen === 'home' ? 'home' : 'notes');
+            }}
+            onGoHome={() => {
+              setActiveNav('inicio');
+              setActiveFolderFilter(null);
+              setActiveScreen('home');
             }}
             onSaveNote={handleSaveNote}
             onDeleteNote={(id) => {

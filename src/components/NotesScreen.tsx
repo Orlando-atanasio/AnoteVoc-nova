@@ -6,6 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   Menu,
+  Home,
   Plus,
   Search,
   Check,
@@ -29,6 +30,7 @@ interface NotesScreenProps {
   activeFolderFilter: string | null;
   initialSearchQuery?: string;
   onOpenDrawer: () => void;
+  onGoHome: () => void;
   onOpenNote: (note: Note) => void;
   onNewNote: () => void;
   onDeleteNote: (noteId: string) => void;
@@ -47,6 +49,7 @@ export function NotesScreen({
   activeFolderFilter,
   initialSearchQuery = '',
   onOpenDrawer,
+  onGoHome,
   onOpenNote,
   onNewNote,
   onDeleteNote,
@@ -176,14 +179,24 @@ export function NotesScreen({
 
         {/* Navigation Bar & Folder Title */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={onOpenDrawer}
               className={`p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${navIconColor}`}
+              title="Barra lateral"
+              aria-label="Abrir barra lateral"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="text-left">
+            <button
+              onClick={onGoHome}
+              className={`p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${navIconColor}`}
+              title="Início / Dashboard"
+              aria-label="Retornar ao Dashboard"
+            >
+              <Home className="w-5 h-5" />
+            </button>
+            <div className="text-left ml-0.5">
               <h2 className={`text-xl font-bold tracking-tight leading-tight ${topTextColor}`}>
                 {screenTitle}
               </h2>

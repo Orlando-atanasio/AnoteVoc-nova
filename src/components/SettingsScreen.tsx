@@ -7,6 +7,7 @@ import React, { useState, useRef } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
+  Home,
   User,
   HardDrive,
   Download,
@@ -106,14 +107,24 @@ export function SettingsScreen({
     <div className="relative z-10 flex flex-col h-full px-5 pt-2 pb-2.5 sm:px-6 sm:pt-3 sm:pb-3.5 justify-between text-left">
       {/* Top Header */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex items-center gap-1.5 pt-1">
           <button
             onClick={onBack}
             className={`p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${navIconColor}`}
+            title="Voltar"
+            aria-label="Voltar"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h2 className={`text-xl font-bold tracking-tight ${topTextColor}`}>
+          <button
+            onClick={onBack}
+            className={`p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${navIconColor}`}
+            title="Início / Dashboard"
+            aria-label="Ir para o Dashboard"
+          >
+            <Home className="w-5 h-5" />
+          </button>
+          <h2 className={`text-xl font-bold tracking-tight ml-1 ${topTextColor}`}>
             Configurações
           </h2>
         </div>

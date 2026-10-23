@@ -217,6 +217,7 @@ export function SidebarDrawer({
   const [editingFolder, setEditingFolder] = useState<FolderItem | null>(null);
   const [editingFolderName, setEditingFolderName] = useState('');
   const [editingFolderIcon, setEditingFolderIcon] = useState('folder');
+  const [folderToDelete, setFolderToDelete] = useState<FolderItem | null>(null);
 
   const handleStartRename = (folder: FolderItem) => {
     setEditingFolder(folder);
@@ -518,7 +519,7 @@ export function SidebarDrawer({
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onDeleteFolder(root.id);
+                                  setFolderToDelete(root);
                                 }}
                                 className="p-1 rounded-md bg-white/15 hover:bg-white/30 text-red-300 hover:text-red-200 transition-colors cursor-pointer"
                                 title="Excluir pasta"
@@ -583,7 +584,7 @@ export function SidebarDrawer({
                                       <span
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          onDeleteFolder(sub.id);
+                                          setFolderToDelete(sub);
                                         }}
                                         className="p-1 rounded-md bg-white/15 hover:bg-white/30 text-red-300 hover:text-red-200 transition-colors cursor-pointer inline-flex items-center justify-center"
                                         title="Excluir pasta"
@@ -930,6 +931,48 @@ export function SidebarDrawer({
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {/* Modal: Confirmar Exclusão de Pasta */}
+        {folderToDelete && (
+          <div
+            onClick={() => setFolderToDelete(null)}
+            className="absolute inset-0 bg-black/45 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fadeIn"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-[245px] bg-white/95 rounded-2xl p-4 shadow-2xl backdrop-blur-2xl text-center space-y-3 border border-white/80 text-slate-800"
+            >
+              <div className="w-10 h-10 rounded-full bg-red-100 text-red-500 mx-auto flex items-center justify-center">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-900">Excluir pasta?</h4>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Deseja excluir a pasta <strong>"{folderToDelete.n}"</strong>? As notas vinculadas não serão perdidas e passarão para "Sem pasta".
+                </p>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setFolderToDelete(null)}
+                  className="flex-1 py-2 px-3 rounded-xl bg-slate-200/80 hover:bg-slate-300 text-slate-700 text-xs font-semibold cursor-pointer transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onDeleteFolder(folderToDelete.id);
+                    setFolderToDelete(null);
+                  }}
+                  className="flex-1 py-2 px-3 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-semibold shadow-sm cursor-pointer transition-colors"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
